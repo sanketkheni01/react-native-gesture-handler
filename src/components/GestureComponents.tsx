@@ -1,92 +1,122 @@
-import * as React from 'react';
-import {
-  PropsWithChildren,
-  ForwardedRef,
-  RefAttributes,
-  ReactElement,
-} from 'react';
-import {
-  ScrollView as RNScrollView,
-  ScrollViewProps as RNScrollViewProps,
-  Switch as RNSwitch,
-  SwitchProps as RNSwitchProps,
-  TextInput as RNTextInput,
-  TextInputProps as RNTextInputProps,
-  DrawerLayoutAndroid as RNDrawerLayoutAndroid,
-  DrawerLayoutAndroidProps as RNDrawerLayoutAndroidProps,
-  FlatList as RNFlatList,
-  FlatListProps as RNFlatListProps,
-} from 'react-native';
+/** @format */
 
-import createNativeWrapper from '../handlers/createNativeWrapper';
-
+import * as React from 'react'
+import { PropsWithChildren } from 'react'
 import {
-  NativeViewGestureHandlerProps,
-  nativeViewProps,
-} from '../handlers/NativeViewGestureHandler';
+	ScrollView as RNScrollView,
+	ScrollViewProps as RNScrollViewProps,
+	Switch as RNSwitch,
+	SwitchProps as RNSwitchProps,
+	TextInput as RNTextInput,
+	TextInputProps as RNTextInputProps,
+	DrawerLayoutAndroid as RNDrawerLayoutAndroid,
+	DrawerLayoutAndroidProps as RNDrawerLayoutAndroidProps,
+	FlatList as RNFlatList,
+	FlatListProps as RNFlatListProps,
+	SectionList as RNSectionList,
+	SectionListProps as RNSectionListProps,
+} from 'react-native'
+
+import createNativeWrapper from '../handlers/createNativeWrapper'
+
+import { NativeViewGestureHandlerProps } from '../handlers/NativeViewGestureHandler'
 
 export const ScrollView = createNativeWrapper<
-  PropsWithChildren<RNScrollViewProps>
+	PropsWithChildren<RNScrollViewProps>
 >(RNScrollView, {
-  disallowInterruption: true,
-  shouldCancelWhenOutside: false,
-});
+	disallowInterruption: true,
+	shouldCancelWhenOutside: false,
+})
 // backward type compatibility with https://github.com/software-mansion/react-native-gesture-handler/blob/db78d3ca7d48e8ba57482d3fe9b0a15aa79d9932/react-native-gesture-handler.d.ts#L440-L457
-// include methods of wrapped components by creating an intersection type with the RN component instead of duplicating them.
 // eslint-disable-next-line @typescript-eslint/no-redeclare
-export type ScrollView = typeof ScrollView & RNScrollView;
+export type ScrollView = typeof ScrollView & {
+	scrollTo(
+		y?: number | { x?: number; y?: number; animated?: boolean },
+		x?: number,
+		animated?: boolean
+	): void
+	scrollToEnd(options?: { animated: boolean }): void
+}
 
 export const Switch = createNativeWrapper<RNSwitchProps>(RNSwitch, {
-  shouldCancelWhenOutside: false,
-  shouldActivateOnStart: true,
-  disallowInterruption: true,
-});
+	shouldCancelWhenOutside: false,
+	shouldActivateOnStart: true,
+	disallowInterruption: true,
+})
 // eslint-disable-next-line @typescript-eslint/no-redeclare
-export type Switch = typeof Switch & RNSwitch;
+export type Switch = typeof Switch
 
-export const TextInput = createNativeWrapper<RNTextInputProps>(RNTextInput);
+export const TextInput = createNativeWrapper<RNTextInputProps>(RNTextInput)
 // eslint-disable-next-line @typescript-eslint/no-redeclare
-export type TextInput = typeof TextInput & RNTextInput;
+export type TextInput = typeof TextInput
 
 export const DrawerLayoutAndroid = createNativeWrapper<
-  PropsWithChildren<RNDrawerLayoutAndroidProps>
->(RNDrawerLayoutAndroid, { disallowInterruption: true });
+	PropsWithChildren<RNDrawerLayoutAndroidProps>
+>(RNDrawerLayoutAndroid, { disallowInterruption: true })
+// we use literal object since TS gives error when using RN's `positions`
+// @ts-ignore FIXME(TS) maybe this should be removed?
+DrawerLayoutAndroid.positions = { Left: 'left', Right: 'right' }
 // eslint-disable-next-line @typescript-eslint/no-redeclare
-export type DrawerLayoutAndroid = typeof DrawerLayoutAndroid &
-  RNDrawerLayoutAndroid;
+export type DrawerLayoutAndroid = typeof DrawerLayoutAndroid
 
-export const FlatList = React.forwardRef((props, ref) => {
-  const flatListProps = {};
-  const scrollViewProps = {};
-  for (const [propName, value] of Object.entries(props)) {
-    // https://github.com/microsoft/TypeScript/issues/26255
-    if ((nativeViewProps as readonly string[]).includes(propName)) {
-      // @ts-ignore - this function cannot have generic type so we have to ignore this error
-      // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
-      scrollViewProps[propName] = value;
-    } else {
-      // @ts-ignore - this function cannot have generic type so we have to ignore this error
-      // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
-      flatListProps[propName] = value;
-    }
-  }
-  return (
-    // @ts-ignore - this function cannot have generic type so we have to ignore this error
-    <RNFlatList
-      ref={ref}
-      {...flatListProps}
-      renderScrollComponent={(scrollProps) => (
-        <ScrollView {...{ ...scrollProps, ...scrollViewProps }} />
-      )}
-    />
-  );
-}) as <ItemT = any>(
-  props: PropsWithChildren<
-    RNFlatListProps<ItemT> &
-      RefAttributes<FlatList<ItemT>> &
-      NativeViewGestureHandlerProps
-  >,
-  ref: ForwardedRef<FlatList<ItemT>>
-) => ReactElement | null;
+export const SectionList = React.forwardRef<
+	RNSectionList<any>,
+	RNSectionListProps<any>
+>((props, ref) => (
+	<RNSectionList
+		ref={ref}
+		{...props}
+		renderScrollComponent={(scrollProps) => <ScrollView {...scrollProps} />}
+	/>
+))
+
+export const FlatList = React.forwardRef<RNFlatList<any>, RNFlatListProps<any>>(
+	(props, ref) => (
+		<RNFlatList
+			ref={ref}
+			{...props}
+			renderScrollComponent={(scrollProps) => <ScrollView {...scrollProps} />}
+		/>
+	)
+)
 // eslint-disable-next-line @typescript-eslint/no-redeclare
-export type FlatList<ItemT = any> = typeof FlatList & RNFlatList<ItemT>;
+export type FlatList<ItemT> = React.ComponentType<
+	RNFlatListProps<ItemT> &
+		NativeViewGestureHandlerProps &
+		React.RefAttributes<any>
+> & {
+	scrollToEnd: (params?: { animated?: boolean }) => void
+	scrollToIndex: (params: {
+		animated?: boolean
+		index: number
+		viewOffset?: number
+		viewPosition?: number
+	}) => void
+	scrollToItem: (params: {
+		animated?: boolean
+		item: ItemT
+		viewPosition?: number
+	}) => void
+	scrollToOffset: (params: { animated?: boolean; offset: number }) => void
+}
+
+// eslint-disable-next-line @typescript-eslint/no-redeclare
+export type SectionList<ItemT> = React.ComponentType<
+	RNSectionListProps<ItemT> &
+		NativeViewGestureHandlerProps &
+		React.RefAttributes<any>
+> & {
+	scrollToEnd: (params?: { animated?: boolean }) => void
+	scrollToIndex: (params: {
+		animated?: boolean
+		index: number
+		viewOffset?: number
+		viewPosition?: number
+	}) => void
+	scrollToItem: (params: {
+		animated?: boolean
+		item: ItemT
+		viewPosition?: number
+	}) => void
+	scrollToOffset: (params: { animated?: boolean; offset: number }) => void
+}
