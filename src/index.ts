@@ -75,6 +75,7 @@ export {
   TextInput,
   DrawerLayoutAndroid,
   FlatList,
+  SectionList
 } from './components/GestureComponents';
 export type {
   //events
